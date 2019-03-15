@@ -9,14 +9,14 @@ have components that shouldn't be in the BOM, like programming pads, NFC antenna
 or unused components. Unfortunately the provided `bom.ulp` doesn't provide an
 efficient way to skip this components.
 
-## What is a BOM
+## What is a BOM?
 You can think of it as a kind of shopping list for your electronic design.
 It contains all of the ingredients (parts) that go into making your PCB design
 complete. But rather than just a general shopping list with a one-word value
 for an item, an item in a BOM contains a ton of information that makes it
 easy to identify, shop for, and purchase.
 
-## How did I do that
+## How did I do that?
 I made a copy of the `bom.ulp` file from the EAGLE 9.3.0 installation directory and
 made some minor changes. The new ULP skips components that have an `NOBOM`
 attribute (The value doesn't matter). Please also note that I had to change only
