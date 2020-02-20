@@ -58,7 +58,8 @@ if (board) board(B) {
   if (fileName == "") exit(0);
 
   output(fileName) {
-
+   printf("\"NAME\",\"SHAPE\",\"VALUE\",\"XPOS\",\"YPOS\",\"ROT\",\"SIDE\"\n");
+   
    B.elements(E) if (E.populate) {
 
      int wasSmd,
@@ -81,9 +82,9 @@ if (board) board(B) {
          }
 
        if (wasSmd)
-         printf("%s %5.2f %5.2f %3.0f %s %s\n",
-         E.name, u2mm((xmin + xmax)/2), u2mm((ymin + ymax)/2),
-         E.angle, E.value, E.package.name);
+         printf("\"%s\",\"%s\",\"%s\",\"%8.3f\",\"%8.3f\",\"%4.0f\",\" Bottom\"\n",
+         E.name, E.package.name, E.value, u2mm((xmin + xmax)/2), u2mm((ymin + ymax)/2),
+         E.angle);
    }
  }
 }
