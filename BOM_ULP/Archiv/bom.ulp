@@ -249,8 +249,8 @@ int FoundAttributes = 0;            // # of different attribute names found in s
 numeric string AttributesList[];    // Sorted list of all attributes found in the schematic.
 numeric string PartAttributes[];    // Adjusted list of attributes per part.
 
-enum { ltValues, ltParts };         // List Types
-enum { ofCSV, ofText, ofHTML };     // Output Formats
+enum { ltParts, ltValues };         // List Types
+enum { ofText, ofCSV, ofHTML };     // Output Formats
 int ListType = 0;
 int OutputFormat = 0;
 
@@ -288,8 +288,6 @@ string ReplaceTabs(string s)
 //            AttributesList[]   - Sorted list of all attributes found in the schematic.
 //            PartAttributes[]   - Adjusted list of attributes per part.
 
-
-
 void CollectPartData (string var)
 {
   int Found = 0;
@@ -310,16 +308,38 @@ void CollectPartData (string var)
           {
             P.attributes (A)
             {
-
+              if (A.name != NOBOM) {
+                if (0 == FoundAttributes)
+                {
+                    // First one
+                    AttributesList[0] = A.name;
+                    FoundAttributes = 1;
+                }
+                else
+                {
+                  Found = 0;
+                  for (i = 0; i < FoundAttributes; i ++)
+                  {
+                    if (A.name == AttributesList[i])
+                    {
+                      // Found an already listed atrribute
+                      Found = 1;
+                      break;
+                    }
+                  }
+                  if (0 == Found)
+                  {
+                    // Attribute not listed, add at the end.
+                    AttributesList[FoundAttributes] = A.name;
+                    FoundAttributes ++;
+                  }
+                }
+              }
             }
           }
         }
       }
     }
-    AttributesList[0] = "MFG";
-    AttributesList[1] = "MPN";
-    AttributesList[2] = "PRICE";
-    FoundAttributes = 3;
     sort (FoundAttributes, AttributesList);
   }
   // Second, collect all data
@@ -674,8 +694,8 @@ dlgDialog (tr ("Bill Of Material"))
   {
     dlgGroup(tr ("List type"))
     {
-      dlgRadioButton(tr ("&Values"), ListType) GenerateValueList ();
       dlgRadioButton(tr ("&Parts"), ListType) GeneratePartList ();
+      dlgRadioButton(tr ("&Values"), ListType) GenerateValueList ();
       dlgCheckBox(tr ("List &attributes"), UseAttributes) {
         if (!UseAttributes) {
           NumParts = 0;
@@ -686,10 +706,10 @@ dlgDialog (tr ("Bill Of Material"))
     }
     dlgGroup (tr ("Output format"))
     {
-      // 2008-11-24 cwi: New format added.
-      dlgRadioButton(tr ("&CSV"), OutputFormat);
       // 2008-10-09: Entries swapped for correct function.
       dlgRadioButton(tr ("&Text"), OutputFormat);
+      // 2008-11-24 cwi: New format added.
+      dlgRadioButton(tr ("&CSV"), OutputFormat);
       dlgRadioButton(tr ("&HTML"), OutputFormat);
     }
     dlgStretch(1);

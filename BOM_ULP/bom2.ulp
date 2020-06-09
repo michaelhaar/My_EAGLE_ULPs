@@ -320,7 +320,7 @@ void CollectPartData (string var)
     AttributesList[1] = "MPN";
     AttributesList[2] = "PRICE";
     FoundAttributes = 3;
-    sort (FoundAttributes, AttributesList);
+    //sort (FoundAttributes, AttributesList);
   }
   // Second, collect all data
   schematic (SCH)
@@ -395,17 +395,18 @@ void GeneratePartList(void)
 
 // Generate list with one entry per value.
 // 'VALUE' is replaced by the value of attribute 'VAL', if existing.
-
+real sum_price;
 void GenerateValueList (void)
 {
   int NumLines = 0;
   int Index [];
   string attr[], s, s_val;
+  sum_price = 0;
 
   if (UseAttributes) s = strjoin(AttributesList, '\t');
 
   // 2010-04-17 cwi: Included description.
-  Lines[NumLines ++] = tr ("Qty\tValue\tDevice\tPackage\tParts\tDescription\t") + s;                 // 2011-04-08
+  Lines[NumLines ++] = tr ("Qty\tValue\tDevice\tPackage\tParts\tDescription\t") + s + "\tPOS_PRICE";                 // 2011-04-08
   sort (NumParts, Index, PartValue, PartDevice, PartPackage, PartAttributes, PartName, PartHeadline); // 2011-11-08 Partattribute jetzt nach Package alf@cadsoft.de
   for (int n1 = 0, n2 = 0; ++ n2 <= NumParts; )
   {
@@ -422,6 +423,7 @@ void GenerateValueList (void)
     }
 
     string Quantity;
+    int qty = n2 - n1;			//added by Michael
     sprintf (Quantity, "%d", n2 - n1);
     string line;
     line = Quantity + "\t" + PartValue[i1] + "\t" + PartDevice[i1] + "\t" + PartPackage[i1] + "\t";
@@ -436,9 +438,27 @@ void GenerateValueList (void)
       else
         break;
     }
+
+    // added by Michael
+    strsplit (attr, PartAttributes[i1], Separator);
+    string price = attr[2];
+    // replace seperators 
+    for (int k = 0; k<strlen(price); k++) {
+    	if (price[k] == ',') 
+    	{
+    		price[k] = '.';
+    	}
+    }
+    real pos_price = strtod(price)*qty;
+    sum_price += pos_price;
+    string str_pos_price;
+    sprintf (str_pos_price, "%.2f", pos_price);
+
+
+
     // cwi: add extra information from attributes
     // 2010-04-17 cwi: Included description.
-    line += "\t" + PartHeadline[i1] + "\t" + s;
+    line += "\t" + PartHeadline[i1] + "\t" + s + "\t" + str_pos_price;
 
     if (PartNoBOM[i1] == 0) {
       Lines[NumLines] = line;
@@ -453,7 +473,7 @@ void GenerateList (void)
 {
   switch (ListType)
   {
-    case ltParts:  GeneratePartList (); break;
+    //case ltParts:  GeneratePartList (); break;
     case ltValues: GenerateValueList (); break;
   }
 }
@@ -512,6 +532,37 @@ string MakeListCSV (void)
 {
   string List;
   int numHeaders;
+  
+  string str_sum_price;
+  sprintf (str_sum_price, "%.2f", sum_price);
+  List += "SUM_PRICE: " + str_sum_price + "\n\n";
+
+  //******** sorting *********
+  //get number of lines
+  int n;
+  for (n = 0; Lines[n]; n++){;}
+  // start sort algorithm
+  string temp;
+  for (int i = 1; i < n; ++i) {
+  	string a1[];
+    int l1 = strsplit (a1, Lines[i], '\t');
+    real pos_price_1 = strtod(a1[l1-1]);   
+  	for (int j=i+1; j<n; ++j) 
+  	{
+  		string a2[];
+    	int l2 = strsplit (a2, Lines[j], '\t');
+    	real pos_price_2 = strtod(a2[l2-1]);
+
+    	if(pos_price_1<pos_price_2) {
+    		sprintf(temp, "%s", Lines[i]);
+    		sprintf(Lines[i], "%s", Lines[j]);
+    		pos_price_1 = pos_price_2;
+			sprintf(Lines[j], "%s", temp);
+		}
+  	}
+  }
+  //**** end of sorting *****
+
 
   for (int l = 0; Lines[l]; l ++)
   {
